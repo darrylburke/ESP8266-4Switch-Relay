@@ -77,6 +77,8 @@ String AuthedUser="";
 String ConnectedIP="";
 
 String webPage = "";
+int cmdcounter = 0;
+//counter added to all urls to prevent same link from being sent twice by proxy/cache/browser reload
 //------------------------------------------------------------------------------------
 
 #if defined (SMTP)
@@ -162,7 +164,7 @@ void blink(int count) {
 
 void setWebPage(bool refresh) {
 
-
+ cmdcounter++;
   webPage = "<html><head>";
   if (refresh){
 #if defined (REDIRECT)
@@ -183,7 +185,15 @@ void setWebPage(bool refresh) {
   }else {
     webPage += "Off";
   }
-  webPage += "] <a href=\"ledOn\"><button>ON</button></a>&nbsp;<a href=\"ledOff\"><button>OFF</button></a>&nbsp;<a href=\"ledToggle\"><button>Toggle</button></a>&nbsp;<a href=\"ledBounce\"><button>Bounce</button></a> </p>"; 
+  webPage += "] <a href=\"ledOn?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>ON</button></a>&nbsp;<a href=\"ledOff?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>OFF</button></a>&nbsp;<a href=\"ledToggle?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Toggle</button></a>&nbsp;<a href=\"ledBounce?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Bounce</button></a> </p>"; 
   
   webPage += "<p>Switch #1 [";
   if (switch1state == 1){
@@ -193,9 +203,17 @@ void setWebPage(bool refresh) {
   }
   webPage += "] ";
  #if !defined (GARAGEMODE)
-   webPage += "<a href=\"switch1On\"><button>ON</button></a>&nbsp;<a href=\"switch1Off\"><button>OFF</button></a>&nbsp;<a href=\"switch1Toggle\"><button>Toggle</button></a>&nbsp;";
+   webPage += "<a href=\"switch1On?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>ON</button></a>&nbsp;<a href=\"switch1Off?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>OFF</button></a>&nbsp;<a href=\"switch1Toggle?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Toggle</button></a>&nbsp;";
  #endif 
-  webPage += "<a href=\"switch1Bounce\"><button>Bounce</button></a></p>";
+  webPage += "<a href=\"switch1Bounce?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Bounce</button></a></p>";
   webPage += " <p>Switch #2 [";
    if (switch2state == 1){
     webPage += "&nbsp;On";
@@ -204,9 +222,17 @@ void setWebPage(bool refresh) {
   }
   webPage += "] ";
  #if !defined (GARAGEMODE)
-  webPage += "<a href=\"switch2On\"><button>ON</button></a>&nbsp;<a href=\"switch2Off\"><button>OFF</button></a>&nbsp;<a href=\"switch2Toggle\"><button>Toggle</button></a>&nbsp;";
+  webPage += "<a href=\"switch2On?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>ON</button></a>&nbsp;<a href=\"switch2Off?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>OFF</button></a>&nbsp;<a href=\"switch2Toggle?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Toggle</button></a>&nbsp;";
 #endif 
- webPage += "<a href=\"switch2Bounce\"><button>Bounce</button></a></p>";
+ webPage += "<a href=\"switch2Bounce?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Bounce</button></a></p>";
  
 
 #if defined(fourswitch)
@@ -219,9 +245,17 @@ webPage += " <p>Switch #3 [";
   }
     webPage += "] ";
    #if !defined (GARAGEMODE)
-    webPage +="<a href=\"switch3On\"><button>ON</button></a>&nbsp;<a href=\"switch3Off\"><button>OFF</button></a>&nbsp;<a href=\"switch3Toggle\"><button>Toggle</button></a>";  
+    webPage +="<a href=\"switch3On?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>ON</button></a>&nbsp;<a href=\"switch3Off?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>OFF</button></a>&nbsp;<a href=\"switch3Toggle?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Toggle</button></a>";  
   #endif
-  webPage +="&nbsp;<a href=\"switch3Bounce\"><button>Bounce</button></a></p>";
+  webPage +="&nbsp;<a href=\"switch3Bounce?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Bounce</button></a></p>";
 webPage += " <p>Switch #4 [";
    if (switch4state == 1){
     webPage += "&nbsp;On";
@@ -230,15 +264,25 @@ webPage += " <p>Switch #4 [";
   }
   webPage += "] ";
    #if !defined (GARAGEMODE)
-    webPage +="<a href=\"switch4On\"><button>ON</button></a>&nbsp;<a href=\"switch4Off\"><button>OFF</button></a>&nbsp;<a href=\"switch4Toggle\"><button>Toggle</button></a>";
+    webPage +="<a href=\"switch4On?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>ON</button></a>&nbsp;<a href=\"switch4Off?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>OFF</button></a>&nbsp;<a href=\"switch4Toggle?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Toggle</button></a>";
    #endif
-   webPage += "&nbsp;<a href=\"switch4Bounce\"><button>Bounce</button></a></p>";
+   webPage += "&nbsp;<a href=\"switch4Bounce?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>Bounce</button></a></p>";
 //<input type="checkbox" name="vehicle" value="Car" checked> I have a car<br>
 
 #endif
    
    
-  webPage += "</br></br> <a href=\"reset\"><button>RESET</button></a>";
+  webPage += "</br></br> <a href=\"reset?counter=";
+  webPage += cmdcounter;
+  webPage += "\"><button>RESET</button></a>";
   webPage += "</body></html>";
 }
 void nocache(){
@@ -395,6 +439,27 @@ else if (server.authenticate(www2_username, www2_password))
 
 void processSwitch(String myswitch, String mycommand, int gpio ){
 
+  
+  
+  String mycmd=server.arg("counter");
+  Serial.print ("CMD:[");
+  Serial.print (mycmd);
+  Serial.println ("]");
+  int mycdmint = mycmd.toInt();
+  if (mycdmint != cmdcounter) {
+    Serial.print("Error: Expected:[");
+    Serial.print(cmdcounter);
+    Serial.print("] Got:[");
+    Serial.print(mycdmint);
+    Serial.print("]");
+    setWebPage(true);
+    nocache();
+    server.send(200, "text/html", webPage);
+    delay(200);
+        
+    return;
+  }
+  
    bool switchstate = false;
 
     if (myswitch == "Switch 1") switchstate = switch1state ;
